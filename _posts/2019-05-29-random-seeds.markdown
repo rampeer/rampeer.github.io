@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Reproducibility: fixing random seeds not enough"
+title:  "Reproducibility: fixing random seeds"
 date:   2019-05-29 00:00:00 +0300
 categories: 
 ---
