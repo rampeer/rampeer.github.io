@@ -8,7 +8,7 @@ categories:
 We are on the quest towards reproducibility.
 
 As I described in [previous post]({% post_url 2019-05-29-random-seeds %}), fixing random seeds is not enough because
-parallelization also throws sticks in the wheels. Because order of operations is not well-defined, we may end up
+parallelization also throws problems in our way. Because order of operations is not well-defined, we may end up
 with slighly different results.
 
 To be specific, it's issue with library that interprets our high-level neural network description into low-level 
