@@ -7,24 +7,26 @@ categories:
 
 We are on the quest towards reproducibility.
 
-As I described in [previous post](2019-05-29-random-seeds.markdown), fixing random seeds is not enough because
+As I described in [previous post]({% post_url 2019-05-29-random-seeds %}), fixing random seeds is not enough because
 parallelization also throws sticks in the wheels. Because order of operations is not well-defined, we may end up
 with slighly different results.
 
 To be specific, it's issue with library that interprets our high-level neural network description into low-level 
 GPU commands, namely - CuDNN.
 
-Overall pipeline looks like
+Overall pipeline looks like a layered pie:
 
-Keras/Pytorch
-Tensorflow
-CuDNN
-CUDA
-Drivers
-Hardware
+```
+Keras/Pytorch - top-level library you are usually interacting with
+Tensorflow/THNN - back-end for these libraries
+CuDNN - extention of CUDA for deep learning
+CUDA - platform for parallel computations using GPU
+Drivers - hardware-specific piece of software that is needed for universal GPU API
+Hardware - your RTX 2080 Ti
+```
 
-Thankfully, there are switches in CuDNN that enable and disable deterministic (but slower) that does not make use of
-parallelized sum, hence produces same results every run. Because we do not interact with CuDNN directly, we have to
+Thankfully, there are switches in CuDNN that enable and disable deterministic (but slower) implementation
+that that produces same results every run. Because we do not interact with CuDNN directly, we have to
 tell our library of choice to turn this switch on.
 
 Unfortunately, Keras does not have that functionality (yet), as described in 
@@ -34,7 +36,8 @@ Unfortunately, Keras does not have that functionality (yet), as described in
 Looks like it's time for Pytorch to shine. It has settings that tell CuDNN to use deterministic implementation:
 
 ```python
-
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 ```
 
 Let's write a simple network with a single convolution, and train it on random data (exact architecture or data do not
@@ -66,13 +69,55 @@ class Net(nn.Module):
         x = x.view(-1, self.hidden_size)
         x = F.relu(self.fc1(x))
         return x
+
+def fix_seeds(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(42)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+class MyTestCase(unittest.TestCase):
+    def test_reproducility(self):
+        def get_weight_sums():
+            return np.sum([np.sum(x.data.cpu().detach().numpy()) for x in net.parameters()])
+
+        fix_seeds(42)
+
+        Ws = np.random.normal(size=(20*20*3, 1))
+
+        net = Net(in_shape=20).cuda()
+
+        if np.abs(get_weight_sums() - -2.2693140506744385) > 1e-7:
+            raise Exception(f"Model weight sum after initialization is wrong! It should not be {get_weight_sums()}")
+
+        optimizer = optim.SGD(net.parameters(), lr=0.01)
+        for _ in range(1000):
+            optimizer.zero_grad()
+            Xs = np.random.normal(size=(10, 3, 20, 20))
+            Ys = np.dot(Xs.reshape((10, 20 * 20 * 3)), Ws) + np.random.normal(size=(10, 1))
+
+            output = net(torch.tensor(Xs, dtype=torch.float).cuda())
+            loss = nn.MSELoss()(output, torch.tensor(Ys, dtype=torch.float).cuda())
+
+            loss.backward()
+            optimizer.step()
+
+        if np.abs(get_weight_sums() - -17.0853214263916) > 1e-7:
+            raise Exception(f"Model weight sum after training is wrong! It should not be {get_weight_sums()}")
+
+
+if __name__ == '__main__':
+    unittest.main()
+
 ```
 
-The script gives "OK" each time it is run, which means pytorch gives consistent results.
-These two flags tell CuDNN to use determenistic implementation of convolution.
+It seems that these flags work. In fact, for me, setting `benchmark = False` is enough to get consistent results.
 
-Some people say that these variables affect some session-wide variables, so setting them in pytorch
-will affect Keras. Let's check it.
+The script gives "OK" each time it is run, which means pytorch gives consistent results.
+
+But wait! There are speculations that these variables affect some session-wide variables, so setting them in pytorch
+will affect Keras. This way, we can make use of these flags AND use Keras to write models. Let's check it out.
 
 ```python
 import unittest
@@ -102,7 +147,7 @@ if __name__ == "__main__":
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
-
+# Code from previous post here
 ```
 
 (yes, this code looks horrible, but there is no clean way to experiment with imports).
@@ -128,6 +173,6 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 ```
 
 It seems that Keras and Torch indeed can share CuDNN session, and initializing this session with Torch first breaks
-Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0)
+Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0).
 
 So, it seems that right now, if you want consistent reproducible results, you'd better use Pytorch.
