@@ -4,44 +4,42 @@ title:  "Practical issues of reproducibility"
 date:   2019-06-13 00:00:00 +0300
 categories: 
 ---
-
 We are on the quest towards reproducibility.
 
-As I described in [previous post]({% post_url 2019-05-29-random-seeds %}), fixing random seeds is not enough because
-parallelization also throws problems in our way. Because order of operations is not well-defined, we may end up
-with slighly different results.
+As I described in [the previous post]({% post_url 2019-05-29-random-seeds %}), fixing random seeds is not enough because
+operation parallelization also throws problems in our way. Because the order of operations is not well-defined,
+ we may end up with slightly different results.
 
-To be specific, it's issue with library that interprets our high-level neural network description into low-level 
-GPU commands, namely - CuDNN.
+To be specific, it's an issue with the backend of our library that translates high-level Keras/Pytorch network
+description and training information into lower-level commands, CuDNN.
 
-Overall pipeline looks like a layered pie:
+Overall, the pipeline looks like a layered pie:
 
 ```
 Keras/Pytorch - top-level library you are usually interacting with
-Tensorflow/THNN - back-end for these libraries
+Tensorflow/Aten - back-end for these libraries
 CuDNN - extention of CUDA for deep learning
 CUDA - platform for parallel computations using GPU
 Drivers - hardware-specific piece of software that is needed for universal GPU API
 Hardware - your RTX 2080 Ti
 ```
 
-Thankfully, there are switches in CuDNN that enable and disable deterministic (but slower) implementation
-that that produces same results every run. Because we do not interact with CuDNN directly, we have to
-tell our library of choice to turn this switch on.
+There are deterministic (but slower) algorithm implementations in CuDNN. Because we do not interact with 
+CuDNN directly, we have to tell our library of choice to use specific implementations. In other words, we have to
+turn on the "I'm ok with slower training, give me consistent results every run" flag.
 
 Unfortunately, Keras does not have that functionality (yet), as described in 
 [these](https://github.com/tensorflow/tensorflow/issues/18096) 
 [issues](https://github.com/tensorflow/tensorflow/issues/12871).
 
-Looks like it's time for Pytorch to shine. It has settings that tell CuDNN to use deterministic implementation:
+Looks like it's time for Pytorch to shine. It has settings that will enable the use of CuDNN deterministic implementations:
 
 ```python
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 ```
 
-Let's write a simple network with a single convolution, and train it on random data (exact architecture or data do not
-matter much, as we are just testing reproducibility).
+Let's write a simple network with a single convolution, and train it on random data. The exact architecture or data do not matter much, as we are just testing reproducibility.
 
 ```python
 import random
@@ -112,11 +110,11 @@ if __name__ == '__main__':
 
 ```
 
+The script gives "OK" each time it is run, which means PyTorch gives consistent results.
+
 It seems that these flags work. In fact, for me, setting `benchmark = False` is enough to get consistent results.
 
-The script gives "OK" each time it is run, which means pytorch gives consistent results.
-
-But wait! There are speculations that these variables affect some session-wide variables, so setting them in pytorch
+But wait! There are speculations that these variables affect some session-wide variables, so setting them in PyTorch
 will affect Keras. This way, we can make use of these flags AND use Keras to write models. Let's check it out.
 
 ```python
@@ -172,7 +170,7 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 ----------------------------------------------------------------------
 ```
 
-It seems that Keras and Torch indeed can share CuDNN session, and initializing this session with Torch first breaks
+It seems that Keras and Torch indeed can share CuDNN session, and initializing the session with Torch first breaks
 Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0).
 
 So, it seems that right now, if you want consistent reproducible results, you'd better use Pytorch.
