@@ -114,8 +114,22 @@ The script gives "OK" each time it is run, which means PyTorch gives consistent 
 
 It seems that these flags work. In fact, for me, setting `benchmark = False` is enough to get consistent results.
 
-But wait! There are speculations that these variables affect some session-wide variables, so setting them in PyTorch
-will affect Keras. This way, we can make use of these flags AND use Keras to write models. Let's check it out.
+But wait! There are speculations that these setting affect some session-wide variables, so setting them in PyTorch
+will affect Keras. This way, we can make use of these flags AND use Keras to write models. First of all, let's check
+out how these flags work. Let's go deeper! 
+
+Setting deterministic / benchmark flags from Python side
+[calls functions defined in the C sources](https://github.com/pytorch/pytorch/blob/3a0b27b73d901ab99b6c452b7e716058311e3372/torch/backends/cudnn/__init__.py#L481). 
+Here, the state
+[is remembered internally](https://github.com/pytorch/pytorch/blob/3a0b27b73d901ab99b6c452b7e716058311e3372/aten/src/ATen/Context.cpp#L67).
+In other words, this flag does not affect global state (environment variables, for example).
+
+After that, this flag affects [choice of algorithm](https://github.com/pytorch/pytorch/blob/85528feb409d2a44e2a35637e0768d6de8d92039/aten/src/ATen/native/cudnn/Conv.cpp#L460)
+during convolution.
+
+So, it seems that PyTorch settings should not affect global internals.
+
+Let's check it:
 
 ```python
 import unittest
@@ -148,13 +162,12 @@ if __name__ == "__main__":
 # Code from previous post here
 ```
 
-(yes, this code looks horrible, but there is no clean way to experiment with imports).
+(Yes, this code looks horrible, but there is no clean way to experiment with imports).
 
 Running this script with `--torch_after_keras` flag imports Torch and sets flags after the Keras import. This flag
 has no effect on reproducibility.
 
-`--torch_before_keras` gives much more interesting and promising results. It imports Torch before Keras, and running
-script with this argument produces
+`--torch_before_keras` imports Torch before Keras, and running script with this argument produces error:
 
 ```text
 I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
@@ -170,7 +183,7 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 ----------------------------------------------------------------------
 ```
 
-It seems that Keras and Torch indeed can share CuDNN session, and initializing the session with Torch first breaks
+That's quite peculiar. I haven't dug It seems that Keras and Torch indeed can share CuDNN session, and initializing the session with Torch first breaks
 Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0).
 
 So, it seems that right now, if you want consistent reproducible results, you'd better use Pytorch.
