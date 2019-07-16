@@ -5,7 +5,7 @@ date:   2019-05-29 00:00:00 +0300
 categories: 
 ---
 
->"Reproducibile research is easy. Just log your parameters and metrics somewhere, fix seeds, and you are good to go" 
+>"Reproducible research is easy. Just log your parameters and metrics somewhere, fix seeds, and you are good to go" 
 
 -- me, about two weeks ago. 
 
@@ -33,12 +33,6 @@ However, I noticed one peculiarity.
 I fixed all random seeds, as numerous guides suggested:
 
 ```python
-import numpy as np
-import random
-import tensorflow as tf
-import keras.backend as K
-
-
 def fix_seeds(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -53,14 +47,6 @@ However, for some reason, two consecutive runs with identical hyperparameters ga
 Being unable to track the issue down in the project, I decided to make a script with a small model that reproduces the issue.
 
 ```python
-import unittest
-from keras.layers import Dense
-import numpy as np
-from keras.models import Sequential
-import keras
-
-from .common import fix_seeds
-
 def create_mlp(dim):
     model = Sequential()
     model.add(Dense(8, input_dim=dim))
@@ -89,60 +75,57 @@ if __name__ == '__main__':
 
 ```
 
+[Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_dense.py)
+
 I ran it several times. It gave the same results each execution (I hardcoded them as assertions).
 
 So, I added a bit of complexity into the model by plugging in convolution layers.
 
 ```python
-import unittest
-
-from .common import fix_seeds
-
-from keras import Input, Model
-from keras.layers import Dense, Conv2D, Flatten
-import numpy as np
-import keras
-
-
-def create_mlp(dim):
+def create_nnet(dim):
     input = Input(shape=dim)
     conv = Conv2D(5, (3, 3), activation="relu")(input)
     flat = Flatten()(conv)
     output = Dense(1)(flat)
     return Model([input], [output])
-
-
-class MyTestCase(unittest.TestCase):
-    def test_reproducility(self):
-        fix_seeds(42)
-
-        model = create_mlp((20, 20, 3))
-
-        Xs = np.random.normal(size=(1000, 20, 20, 3))
-        Ws = np.random.normal(size=(20*20*3, 1))
-        Ys = np.dot(Xs.reshape((1000, 20*20*3)), Ws) + np.random.normal(size=(1000, 1))
-        assert(np.abs(np.array(model.get_weights()[0]).sum() - -0.96723086) < 1e-7)
-        assert(np.abs(Ys.sum() - 418.55143288343953) < 1e-7)
-
-        model.compile(optimizer=keras.optimizers.RMSprop(lr=1e-2),
-                      loss=keras.losses.MSE)
-
-        model.fit(Xs, Ys, batch_size=10, epochs=10)
-
-        model_weights = model.get_weights()[0].sum()
-
-        if abs(model_weights - -1.2788088) < 1e-7:
-            print("It seems that you are using CPU to train the model!")
-        else:
-            print("Model weight sum: ", model_weights)
-
-
-if __name__ == '__main__':
-    unittest.main()
-
 ```
 
+Training procedure quite is similar:
+
+```python
+model = create_nnet((20, 20, 3))
+
+Xs = np.random.normal(size=(1000, 20, 20, 3))
+Ws = np.random.normal(size=(20*20*3, 1))
+Ys = np.dot(Xs.reshape((1000, 20*20*3)), Ws) + np.random.normal(size=(1000, 1))
+
+if np.abs(np.array(model.get_weights()[0]).sum() - -0.96723086) > 1e-7:
+    print("Initialization is incosistent")
+
+if np.abs(Ys.sum() - 418.55143288343953) > 1e-7:
+    print("Data generation is incosistent")
+
+model.compile(optimizer=RMSprop(lr=1e-2), loss=MSE)
+
+model.fit(Xs, Ys, batch_size=10, epochs=10)
+
+model_weights = model.get_weights()[0].sum()
+```
+At the end, we expect to get certain value:
+
+```python
+if abs(model_weights - -1.2788088) < 1e-7:
+    print("It seems that you are using CPU to train the model! What a nice way to ensure reproducibility.")
+else:
+    print(f"Your model weight sum is {model_weights}, but it should not be.")
+```
+
+[Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_cnn.py)
+
 And, voila, it broke. Every time the script is run, a different number is printed.
+
+As you could've already guessed from code, if you are using CPU to train neural network, you will get consistent results.
+If your machine has GPU, you can hide it from script by setting `CUDA_VISIBLE_DEVICES` environment variable to `""` from console.
 
 A quick investigation discovered ugly truth: there are [issues with reproducibility](https://machinelearningmastery.com/reproducible-results-neural-networks-keras/).
 (to all "you suffer because you use Keras", Pytorch has [similar problem](https://pytorch.org/docs/stable/notes/randomness.html))
@@ -197,13 +180,15 @@ you realize that train and validation losses do not decrease. Is it a problem wi
 With hardware or driver versions? Is it a problem on your side, or in the repository itself? Until
 everything is fixed and reproducible, you can't be sure.
 
-Nowadays there are plenty of "flimsy" models which tend to get stuck in some local minimum during training. Deep RL models are notoriously known for this issue, but in fact, any large model has this issue to a degree.
+Nowadays there are plenty of "flimsy" models which tend to get stuck in some local minimum during training.
+Deep RL models are notoriously known for this issue, but in fact, any large model has this issue to a degree.
 
 So, it seems that having the ability at least in theory exactly reproduce model can be extremely handy.
 
-The cherry on the top - because it is a hardware issue, there is no cheap way to fix this.
-
-The only way viable workaround is to define the order of operations yourself, i.e. rewrite convolution as a series of sums. Obviously, this can considerably slow down the execution, as calling sum operation from the application level adds some overhead in comparison with hardware-optimized call.
+The cherry on the top - there is no cheap way to fix this.
+The only way viable workaround is to define the order of operations on higher level. For example, rewrite 
+convolution as a series of sums. Obviously, this can considerably slow down the execution, 
+as calling sum operation from the application level adds some overhead in comparison with hardware-optimized call.
 
 Happily, CuDNN already has "reproducible" implementation of these operations, so you do not have to write it yourself.
 Enabling a flag should be enough (in theory, again). I'll share details and caveats of this procedure in next post.

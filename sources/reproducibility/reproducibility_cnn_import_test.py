@@ -1,13 +1,5 @@
 import unittest
 import argparse
-from keras.losses import MSE
-from keras.optimizers import RMSprop
-from keras import Input, Model
-from keras.layers import Dense, Conv2D, Flatten, MaxPool2D
-import numpy as np
-import random
-import tensorflow as tf
-import keras.backend as K
 
 
 def create_nnet(dim):
@@ -47,14 +39,43 @@ class MyTestCase(unittest.TestCase):
             print("Your model weight sum is {model_weights}, but it should not be.")
 
 
-def fix_seeds(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    tf.set_random_seed(seed)
-    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--torch_before_keras", action="store_true")
+    parser.add_argument("--torch_after_keras", action="store_true")
+    args = parser.parse_args()
+
+    if args.torch_before_keras:
+        print("Torch before keras")
+        import torch
+
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    from keras.losses import MSE
+    from keras.optimizers import RMSprop
+    from keras import Input, Model
+    from keras.layers import Dense, Conv2D, Flatten, MaxPool2D
+    import numpy as np
+    import random
+    import tensorflow as tf
+    import keras.backend as K
 
 
-if __name__ == '__main__':
-    unittest.main()
+    def fix_seeds(seed):
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.set_random_seed(seed)
+        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+        sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+        K.set_session(sess)
+
+
+    if args.torch_after_keras:
+        import torch
+
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(MyTestCase)
+    unittest.TextTestRunner().run(suite)

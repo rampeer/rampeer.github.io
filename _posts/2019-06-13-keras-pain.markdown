@@ -42,17 +42,6 @@ torch.backends.cudnn.benchmark = False
 Let's write a simple network with a single convolution, and train it on random data. The exact architecture or data do not matter much, as we are just testing reproducibility.
 
 ```python
-import random
-import unittest
-
-import numpy as np
-
-import torch.optim as optim
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-
 class Net(nn.Module):
 
     def __init__(self, in_shape: int):
@@ -75,48 +64,53 @@ def fix_seeds(seed):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-class MyTestCase(unittest.TestCase):
-    def test_reproducility(self):
-        def get_weight_sums():
-            return np.sum([np.sum(x.data.cpu().detach().numpy()) for x in net.parameters()])
-
-        fix_seeds(42)
-
-        Ws = np.random.normal(size=(20*20*3, 1))
-
-        net = Net(in_shape=20).cuda()
-
-        if np.abs(get_weight_sums() - -2.2693140506744385) > 1e-7:
-            raise Exception(f"Model weight sum after initialization is wrong! It should not be {get_weight_sums()}")
-
-        optimizer = optim.SGD(net.parameters(), lr=0.01)
-        for _ in range(1000):
-            optimizer.zero_grad()
-            Xs = np.random.normal(size=(10, 3, 20, 20))
-            Ys = np.dot(Xs.reshape((10, 20 * 20 * 3)), Ws) + np.random.normal(size=(10, 1))
-
-            output = net(torch.tensor(Xs, dtype=torch.float).cuda())
-            loss = nn.MSELoss()(output, torch.tensor(Ys, dtype=torch.float).cuda())
-
-            loss.backward()
-            optimizer.step()
-
-        if np.abs(get_weight_sums() - -17.0853214263916) > 1e-7:
-            raise Exception(f"Model weight sum after training is wrong! It should not be {get_weight_sums()}")
-
-
-if __name__ == '__main__':
-    unittest.main()
-
+def get_weight_sums():
+    return np.sum([np.sum(x.data.cpu().detach().numpy()) for x in net.parameters()])
 ```
 
-The script gives "OK" each time it is run, which means PyTorch gives consistent results.
+We'll use synthetic data to train the network:
 
-It seems that these flags work. In fact, for me, setting `benchmark = False` is enough to get consistent results.
+```python
+fix_seeds(42)
 
-But wait! There are speculations that these setting affect some session-wide variables, so setting them in PyTorch
-will affect Keras. This way, we can make use of these flags AND use Keras to write models. First of all, let's check
-out how these flags work. Let's go deeper! 
+Ws = np.random.normal(size=(20*20*3, 1))
+
+net = Net(in_shape=20).cuda()
+
+if np.abs(get_weight_sums() - -2.2693140506744385) > 1e-7:
+    raise Exception(f"Model weight sum after initialization is wrong! It should not be {get_weight_sums()}")
+
+optimizer = optim.SGD(net.parameters(), lr=0.01)
+for _ in range(1000):
+    optimizer.zero_grad()
+    Xs = np.random.normal(size=(10, 3, 20, 20))
+    Ys = np.dot(Xs.reshape((10, 20 * 20 * 3)), Ws) + np.random.normal(size=(10, 1))
+
+    output = net(torch.tensor(Xs, dtype=torch.float).cuda())
+    loss = nn.MSELoss()(output, torch.tensor(Ys, dtype=torch.float).cuda())
+
+    loss.backward()
+    optimizer.step()
+
+if np.abs(get_weight_sums() - -17.0853214263916) > 1e-7:
+    raise Exception(f"Model weight sum after training is wrong! It should not be {get_weight_sums()}")
+```
+
+[Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_cnn_torch.py)
+
+After initialization we ensure that sum of weights is equal to a specific value. Similarly, after training the 
+network we check the model weights. If there is any discrepancies or randomness, the script will throw an exception.
+
+Running `python3 reproducibility_cnn_torch.py` gives "OK" consistently, which means training neural network in PyTorch 
+gives exactly the same weights.
+
+Therefore, Torch has built-in reproducibility support, and Keras does not have such functionality right now.
+
+*But wait!* There are [speculations](https://www.kaggle.com/c/statoil-iceberg-classifier-challenge/discussion/45663) 
+that because Keras and Torch share back-end, setting these variables in PyTorch
+will affect Keras. It could be the case if the variables affected some process-wide parameters.
+This way, we can make use of these flags AND use Keras to write models in a painless fashion. 
+First of all, let's check out how these flags work. Time to go deeper! 
 
 Setting deterministic / benchmark flags from Python side
 [calls functions defined in the C sources](https://github.com/pytorch/pytorch/blob/3a0b27b73d901ab99b6c452b7e716058311e3372/torch/backends/cudnn/__init__.py#L481). 
@@ -129,43 +123,40 @@ during convolution.
 
 So, it seems that PyTorch settings should not affect global internals.
 
-Let's check it:
+To be completely sure, let's check it in practice. Let's take 
+[previous Keras script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_cnn.py):
+and modify import section:
 
 ```python
-import unittest
-import argparse
-import numpy as np
+parser = argparse.ArgumentParser()
+parser.add_argument("--torch_before_keras", action="store_true")
+parser.add_argument("--torch_after_keras", action="store_true")
+args = parser.parse_args()
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--torch_before_keras", action="store_true")
-    parser.add_argument("--torch_after_keras", action="store_true")
-    args = parser.parse_args()
+if args.torch_before_keras:
+    import torch
 
-    if args.torch_before_keras:
-        import torch
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
+from keras.losses import MSE
+from keras.optimizers import RMSprop
+from keras import Input, Model
+from keras.layers import Dense, Conv2D, Flatten, MaxPool2D
 
-    from keras.losses import MSE
-    from keras.optimizers import RMSprop
-    from keras import Input, Model
-    from keras.layers import Dense, Conv2D, Flatten, MaxPool2D
+if args.torch_after_keras:
+    import torch
 
-    if args.torch_after_keras:
-        import torch
-
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-
-# Code from previous post here
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 ```
 
 (Yes, this code looks horrible, but there is no clean way to experiment with imports).
 
-Running this script with `--torch_after_keras` flag imports Torch and sets flags after the Keras import. This flag
-has no effect on reproducibility.
+[Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_cnn_import_test.py):
+
+Running this script with `--torch_after_keras` flag imports Torch and changes CuDNN setting after the Keras import. 
+This option has no effect on reproducibility.
 
 `--torch_before_keras` imports Torch before Keras, and running script with this argument produces error:
 
@@ -183,7 +174,8 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 ----------------------------------------------------------------------
 ```
 
-That's quite peculiar. I haven't dug It seems that Keras and Torch indeed can share CuDNN session, and initializing the session with Torch first breaks
+That's quite peculiar. I haven't dug It seems that Keras and Torch indeed can share CuDNN session, 
+and initializing the session with Torch first breaks
 Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0).
 
 So, it seems that right now, if you want consistent reproducible results, you'd better use Pytorch.
