@@ -158,7 +158,7 @@ if args.torch_after_keras:
 Running this script with `--torch_after_keras` flag imports Torch and changes CuDNN setting after the Keras import. 
 This option has no effect on reproducibility.
 
-`--torch_before_keras` imports Torch before Keras, and running script with this argument produces error:
+`--torch_before_keras` imports Torch before Keras, for similar effect (this variant crashes with
 
 ```text
 I tensorflow/stream_executor/dso_loader.cc:152] successfully opened CUDA library libcublas.so.10.0 locally
@@ -174,8 +174,6 @@ tensorflow.python.framework.errors_impl.UnknownError: Failed to get convolution 
 ----------------------------------------------------------------------
 ```
 
-That's quite peculiar. I haven't dug It seems that Keras and Torch indeed can share CuDNN session, 
-and initializing the session with Torch first breaks
-Keras initialization (at least in these versions, Keras 2.2.4 and Torch 1.1.0).
+in some versions, but I haven't dug into it).
 
 So, it seems that right now, if you want consistent reproducible results, you'd better use Pytorch.
