@@ -23,8 +23,8 @@ github_username:  rampeer
 linkedin_username: grozin
 
 google_analytics: UA-142584978-1
-disqus:
-  shortname: my_disqus_shortname
+#disqus:
+#  shortname: my_disqus_shortname
 
 # Build settings
 markdown: kramdown
