@@ -171,8 +171,8 @@ Well, there are merits to this argument. Randomness affects weights; so, model p
 *depends* on the random seed. But because the random seed is not an essential part of the model, 
 it might be useful to evaluate model several times for different seeds (or let GPU randomize), 
 and report averaged values along with confidence intervals. 
-However, very few papers actually do that and compare models with a baseline based on point estimates. 
-Instead, there are concerns that improvements that paper report is *less* than this randomness confidence interval.
+Instead, there are [concerns](https://arxiv.org/abs/1709.06560) that improvements that paper report is *less* than this randomness confidence interval.
+However, in practice very few papers actually do that. Instead, models are compared with a baseline based on point estimates.
 
 What's even worse is that results in irreducible stochasticity of the code. 
 Imagine a situation. You have found a paper that describes a fancy model - and it has cleanly organized open source implementation. "Bingo"! You download the code and the model, start training it. After a couple days (it's *very fancy* model)

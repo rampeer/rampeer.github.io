@@ -44,7 +44,7 @@ class MyTestCase(unittest.TestCase):
         if abs(model_weights - -1.2788088) < 1e-7:
             print("It seems that you are using CPU to train the model! What a nice way to ensure reproducibility.")
         else:
-            print("Your model weight sum is {model_weights}, but it should not be.")
+            print(f"Your model weight sum is {model_weights}, but it should not be.")
 
 
 def fix_seeds(seed):
