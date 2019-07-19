@@ -68,4 +68,4 @@ if __name__ == '__main__':
     print(f"Non-deterministic training times: {np.mean(non_determenistic)} +- {np.sqrt(np.var(non_determenistic))}")
 
     determenistic = [t.time_training(True) for _ in range(100)]
-    print(f"Non-deterministic training times: {np.mean(determenistic)} +- {np.sqrt(np.var(determenistic))}")
+    print(f"Deterministic training times: {np.mean(determenistic)} +- {np.sqrt(np.var(determenistic))}")
