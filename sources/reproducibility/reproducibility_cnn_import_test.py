@@ -1,6 +1,8 @@
 import unittest
 import argparse
 
+from .common import assert_same_across_runs
+
 
 def create_nnet(dim):
     input = Input(shape=dim)
@@ -21,10 +23,7 @@ class MyTestCase(unittest.TestCase):
         Ws = np.random.normal(size=(20*20*3, 1))
         Ys = np.dot(Xs.reshape((1000, 20*20*3)), Ws) + np.random.normal(size=(1000, 1))
 
-        if np.abs(np.array(model.get_weights()[0]).sum() - -0.96723086) > 1e-7:
-            print("Initialization is incosistent")
-        if np.abs(Ys.sum() - 418.55143288343953) > 1e-7:
-            print("Data generation is incosistent")
+        init_weights = np.array(model.get_weights()[0]).sum()
 
         model.compile(optimizer=RMSprop(lr=1e-2),
                       loss=MSE)
@@ -33,10 +32,8 @@ class MyTestCase(unittest.TestCase):
 
         model_weights = model.get_weights()[0].sum()
 
-        if abs(model_weights - -1.2788088) < 1e-7:
-            print("It seems that you are using CPU to train the model! What a nice way to ensure reproducibility.")
-        else:
-            print(f"Your model weight sum is {model_weights}, but it should not be.")
+        assert_same_across_runs("mixed model weight before training", init_weights)
+        assert_same_across_runs("mixed model weight after training", model_weights)
 
 
 if __name__ == "__main__":

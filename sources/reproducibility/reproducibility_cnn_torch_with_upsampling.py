@@ -1,6 +1,5 @@
 import random
 import unittest
-from time import time
 
 import numpy as np
 
@@ -17,12 +16,15 @@ class Net(nn.Module):
     def __init__(self, in_shape: int):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 5, 3)
-        self.hidden_size = int((in_shape - 2) * (in_shape - 2) / 4) * 5
+        self.upsample = nn.Upsample(scale_factor=2)
+        self.conv2 = nn.Conv2d(5, 5, 3)
+        self.hidden_size = int((2 * in_shape - 6) * (2 * in_shape - 6) * 5)
         self.fc1 = nn.Linear(self.hidden_size, 1)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.max_pool2d(x, 2)
+        x = self.upsample(x)
+        x = F.relu(self.conv2(x))
         x = x.view(-1, self.hidden_size)
         x = F.relu(self.fc1(x))
         return x
@@ -50,7 +52,7 @@ class MyTestCase(unittest.TestCase):
         init_weights = get_weight_sums()
 
         optimizer = optim.SGD(net.parameters(), lr=0.01)
-        for _ in range(10000):
+        for _ in range(1000):
             optimizer.zero_grad()
             Xs = np.random.normal(size=(10, 3, 20, 20))
             Ys = np.dot(Xs.reshape((10, 20 * 20 * 3)), Ws) + np.random.normal(size=(10, 1))
@@ -61,8 +63,8 @@ class MyTestCase(unittest.TestCase):
             loss.backward()
             optimizer.step()
 
-        assert_same_across_runs("torch model weight before training", init_weights)
-        assert_same_across_runs("torch model weight after training", get_weight_sums())
+        assert_same_across_runs("torch model with upsampling, weights before training", init_weights)
+        assert_same_across_runs("torch model with upsampling, weight after training", get_weight_sums())
 
 
 if __name__ == '__main__':

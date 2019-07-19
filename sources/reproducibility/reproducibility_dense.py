@@ -7,6 +7,8 @@ import random
 import tensorflow as tf
 import keras.backend as K
 
+from common import assert_same_across_runs
+
 
 def fix_seeds(seed):
     random.seed(seed)
@@ -32,12 +34,15 @@ class MyTestCase(unittest.TestCase):
         Ys = np.dot(Xs, Ws) + np.random.normal(size=1000)
         model = create_mlp(10)
 
-        assert(np.abs(Ys.sum() - 36.08286897637723) < 1e-5)
-        assert(np.abs(np.array(model.get_weights()[0]).sum() - -2.574954) < 1e-5)
+        init_weights = np.array(model.get_weights()[0]).sum()
+
         model.compile(optimizer=keras.optimizers.RMSprop(lr=1e-2),
                       loss=keras.losses.MSE)
-        history = model.fit(Xs, Ys, batch_size=10, epochs=10)
-        assert(np.abs(np.array(model.get_weights()[0]).sum() - -2.4054692) < 1e-5)
+        model.fit(Xs, Ys, batch_size=10, epochs=10)
+
+        assert_same_across_runs("dense model data", Ys.sum())
+        assert_same_across_runs("dense model weight after training", init_weights)
+        assert_same_across_runs("dense model weight after training", np.array(model.get_weights()[0]).sum())
 
 
 if __name__ == '__main__':

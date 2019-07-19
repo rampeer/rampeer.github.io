@@ -9,11 +9,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .common import assert_same_across_runs
+import matplotlib.pyplot as plt
 
 
 class Net(nn.Module):
-
     def __init__(self, in_shape: int):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(3, 5, 3)
@@ -37,20 +36,19 @@ def fix_seeds(seed):
 
 
 class MyTestCase(unittest.TestCase):
-    def test_reproducility(self):
-        def get_weight_sums():
-            return np.sum([np.sum(x.data.cpu().detach().numpy()) for x in net.parameters()])
-
-        fix_seeds(42)
-
+    def time_training(self, do_fix_seeds):
+        if do_fix_seeds:
+            fix_seeds(42)
+        else:
+            torch.backends.cudnn.deterministic = False
+            torch.backends.cudnn.benchmark = False
         Ws = np.random.normal(size=(20*20*3, 1))
-
         net = Net(in_shape=20).cuda()
-
-        init_weights = get_weight_sums()
-
         optimizer = optim.SGD(net.parameters(), lr=0.01)
-        for _ in range(10000):
+
+        t = time()
+
+        for _ in range(1000):
             optimizer.zero_grad()
             Xs = np.random.normal(size=(10, 3, 20, 20))
             Ys = np.dot(Xs.reshape((10, 20 * 20 * 3)), Ws) + np.random.normal(size=(10, 1))
@@ -61,9 +59,13 @@ class MyTestCase(unittest.TestCase):
             loss.backward()
             optimizer.step()
 
-        assert_same_across_runs("torch model weight before training", init_weights)
-        assert_same_across_runs("torch model weight after training", get_weight_sums())
+        return time() - t
 
 
 if __name__ == '__main__':
-    unittest.main()
+    t = MyTestCase()
+    non_determenistic = [t.time_training(False) for _ in range(100)]
+    print(f"Non-deterministic training times: {np.mean(non_determenistic)} +- {np.sqrt(np.var(non_determenistic))}")
+
+    determenistic = [t.time_training(True) for _ in range(100)]
+    print(f"Non-deterministic training times: {np.mean(determenistic)} +- {np.sqrt(np.var(determenistic))}")

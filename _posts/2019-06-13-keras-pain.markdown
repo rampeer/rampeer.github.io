@@ -68,7 +68,7 @@ def get_weight_sums():
     return np.sum([np.sum(x.data.cpu().detach().numpy()) for x in net.parameters()])
 ```
 
-We'll use synthetic data to train the network:
+Similarly to the previous post, we'll use synthetic data to train the network:
 
 ```python
 fix_seeds(42)
@@ -104,7 +104,12 @@ network we check the model weights. If there is any discrepancies or randomness,
 Running `python3 reproducibility_cnn_torch.py` gives "OK" consistently, which means training neural network in PyTorch 
 gives exactly the same weights.
 
-Therefore, Torch has built-in reproducibility support, and Keras does not have such functionality right now.
+CuDNN documentation [warns us](https://docs.nvidia.com/deeplearning/sdk/cudnn-developer-guide/index.html#reproducibility)
+that there are several algorithms without reproducibility guarantees. These algorithms are usually faster than their deterministic
+variations. PyTorch does not use them if flags are set; however, there are modules that are 
+[non-deterministic](https://discuss.pytorch.org/t/non-deterministic-behavior-of-pytorch-upsample-interpolate/42842?u=sbelharbi).
+
+Other than that, Torch has built-in reproducibility support, and Keras does not have such functionality right now.
 
 *But wait!* There are [speculations](https://www.kaggle.com/c/statoil-iceberg-classifier-challenge/discussion/45663) 
 that because Keras and Torch share back-end, setting these variables in PyTorch

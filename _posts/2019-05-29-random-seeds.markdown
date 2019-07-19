@@ -44,7 +44,7 @@ def fix_seeds(seed):
 
 However, for some reason, two consecutive runs with identical hyperparameters gave different results.
 
-Being unable to track the issue down in the project, I decided to make a script with a small model that reproduces the issue.
+Being unable to track the issue down in the project, I decided to make a script with a small script that reproduces the issue.
 
 ```python
 def create_mlp(dim):
@@ -52,32 +52,39 @@ def create_mlp(dim):
     model.add(Dense(8, input_dim=dim))
     model.add(Dense(1))
     return model
+```
 
+This funtion creates the model itself. After that, we let's fix seeds and generate some data to train on:
 
-class MyTestCase(unittest.TestCase):
-    def test_reproducility(self):
-        fix_seeds(42)
-        Xs = np.random.normal(size=(1000, 10))
-        Ws = np.random.normal(size=10)
-        Ys = np.dot(Xs, Ws) + np.random.normal(size=1000)
-        model = create_mlp(10)
+```python
+fix_seeds(42)
+Xs = np.random.normal(size=(1000, 10))
+Ws = np.random.normal(size=10)
+Ys = np.dot(Xs, Ws) + np.random.normal(size=1000)
+```
 
-        assert(np.abs(Ys.sum() - 36.08286897637723) < 1e-5)
-        assert(np.abs(np.array(model.get_weights()[0]).sum() - -2.574954) < 1e-5)
-        model.compile(optimizer=keras.optimizers.RMSprop(lr=1e-2),
-                      loss=keras.losses.MSE)
-        history = model.fit(Xs, Ys, batch_size=10, epochs=10)
-        assert(np.abs(np.array(model.get_weights()[0]).sum() - -2.4054692) < 1e-5)
+After that we are ready to train our model:
 
+```python
+model = create_mlp(10)
+init_weights = np.array(model.get_weights()[0]).sum()
+model.compile(optimizer=keras.optimizers.RMSprop(lr=1e-2),
+              loss=keras.losses.MSE)
+model.fit(Xs, Ys, batch_size=10, epochs=10)
+```
 
-if __name__ == '__main__':
-    unittest.main()
+`assert_same_across_runs` is a simple function that checks whether the passed value is same between runs (it does so
+by writing value to a file). This way, we'll ensure reproducibility:
 
+```python
+assert_same_across_runs("dense model data", Ys.sum())
+assert_same_across_runs("dense model weight after training", init_weights)
+assert_same_across_runs("dense model weight after training", np.array(model.get_weights()[0]).sum())
 ```
 
 [Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_dense.py)
 
-I ran it several times. It gave the same results each execution (I hardcoded them as assertions).
+I ran this script several times. It gave the same results each execution.
 
 So, I added a bit of complexity into the model by plugging in convolution layers.
 
@@ -93,31 +100,25 @@ def create_nnet(dim):
 Training procedure quite is similar:
 
 ```python
+fix_seeds(42)
+
 model = create_nnet((20, 20, 3))
 
 Xs = np.random.normal(size=(1000, 20, 20, 3))
 Ws = np.random.normal(size=(20*20*3, 1))
 Ys = np.dot(Xs.reshape((1000, 20*20*3)), Ws) + np.random.normal(size=(1000, 1))
 
-if np.abs(np.array(model.get_weights()[0]).sum() - -0.96723086) > 1e-7:
-    print("Initialization is incosistent")
+init_weights = np.array(model.get_weights()[0]).sum()
 
-if np.abs(Ys.sum() - 418.55143288343953) > 1e-7:
-    print("Data generation is incosistent")
-
-model.compile(optimizer=RMSprop(lr=1e-2), loss=MSE)
+model.compile(optimizer=RMSprop(lr=1e-2),
+              loss=MSE)
 
 model.fit(Xs, Ys, batch_size=10, epochs=10)
 
 model_weights = model.get_weights()[0].sum()
-```
-At the end, we expect to get certain value:
 
-```python
-if abs(model_weights - -1.2788088) < 1e-7:
-    print("It seems that you are using CPU to train the model! What a nice way to ensure reproducibility.")
-else:
-    print(f"Your model weight sum is {model_weights}, but it should not be.")
+assert_same_across_runs("keras model weight before training", init_weights)
+assert_same_across_runs("keras model weight after training", model_weights)
 ```
 
 [Full script](https://github.com/rampeer/rampeer.github.io/blob/master/sources/reproducibility/reproducibility_cnn.py)
