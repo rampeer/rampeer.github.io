@@ -10,12 +10,12 @@ categories:
 TF 2.0 was released a few months ago. There are people who had the first-hand experience with it.
 I'm starting a new project, so I decided to invest time in digging into TF 2.0 and join this circle of pioneers.
 
-My findings do not agree with the general sentiment about TF, and I found a few peculiar things. Because of that, I decided 
-to share it with you.
+My findings do not agree with the general sentiment about TF in the community, and I found a 
+few peculiar things. Because of that, I decided to share it with you.
 
 ## TF2.0 is a bootleg Torch?
 
-Yes, the code looks suspiciously like PyTorch. Just look [at that](https://www.tensorflow.org/guide/keras/custom_layers_and_models):
+Yes, the interfaces and overall code style have suspicious PyTorch vibes. Just look [at that](https://www.tensorflow.org/guide/keras/custom_layers_and_models):
 
 ```python
 class Linear(layers.Layer):
@@ -43,8 +43,8 @@ to let TensorFlow construct a graph from it and optimize its execution (sounds l
 As far as I know, PyTorch follows a slightly different paradigm, and cannot do any precomputations or optimizations.
 
 2) The similarity is not a flaw. Wrapping network logic into a class is a well-established technique 
-that has been proven to be effective and reliable. There is no point in inventing the square wheel just to be unique. 
-And, to be specific, [Lasagne](https://github.com/Lasagne/Lasagne) and [Chainer](https://github.com/chainer/chainer/) 
+that has been proven to be effective. There is no point in inventing the square wheel just to be unique. 
+And, in fact, [Lasagne](https://github.com/Lasagne/Lasagne) and [Chainer](https://github.com/chainer/chainer/) 
 did it before PyTorch (Lasagne seems to be older, but most resources point out Chainer to be the first to use dynamic graphs).
 
 To sum - yep, they are similar, and it’s okay.
@@ -54,13 +54,30 @@ To sum - yep, they are similar, and it’s okay.
 Oh my, if I would be given a dollar whenever I read/hear this phrase, I would have bought a yacht by now.
 
 Swift TensorFlow is a distinct project from TF2.0, but I (like many others) confused them. 
-This project is about adding TF support into Swift.
+This project is about adding TF support into Swift, which will set up a new cornerstone in ML and will open a gateway 
+to the better AI development (judging by numerous ecstatic news articles).
 
-*But why Swift?*
+No, it won't. It is just a language. At best, it will improve quality of your code in your solution and
+performance of your models, as authors claim. In industry, modelling is a part of larger process. Data has to come 
+from somewhere, and trained models must be stored and used elsewhere. Right now Swift does not have huge choice of
+libraries for ETL, data munging, preprocessing, visualization (Python neither ;), experiment tracking, 
+model deployment and other necessary stuff, so you will have to rely on other tools for that. 
+In addition to that, ML is not just a bunch of libraries; it is ecosystem that also consists of best practices, 
+educational materials, pieces of code scattered across Internet, thousand of answered questions in StackOverflow, and, of course,
+people who know and use said libraries. DL Swift does not have all that. Using it will cost you a lot
+since you have to support your solution, but ML engineers familiar with Swift are scarce and expensive (think of Scala 5 years ago). 
+It is not clear whether increment of quality of product from using Swift will worth all that hassle.
+
+You may argue that researchers and academia may benefit from this project more. Maybe, but in my experience
+researchers eat RTXes on breakfast, lunch and dinner, and they prefer to throw in more computational power than to
+clean/optimize the code.
+
+But what's even more intriguing, why *Swift?*
 
 I had this burning question for a while. 
 Python is slow, yes - but there are a lot of different languages, and picking one that is known for mobile development 
-is a strang choice. 
+is a strange choice.
+
 There is a [document](https://github.com/tensorflow/swift/blob/master/docs/WhySwiftForTensorFlow.md)
 describing the cons and pros. To sum up, they had to choose a language that 
 would allow some static analysis for optimizations and graph extractions on one hand, and won’t be too 
@@ -92,7 +109,8 @@ And of course, among all languages he decided to choose the one he created himse
 So, it seems that the last argument (about internal implementation details) is the most important one, despite looking
 inconsiderable.
 
-Added: Personally, I do not think that Swift is bad / this choice is wrong, but I do find this choice to be peculiar and unusual.
+Added: Personally, I do not think that Swift is bad / this choice is wrong, but I have predict that it will have
+troubles displacing conventional instruments and building a community, and I find this choice to be peculiar and unusual.
 
 ## Determinism
 
