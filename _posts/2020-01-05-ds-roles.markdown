@@ -1,0 +1,43 @@
+---
+layout: post
+title:  "Data Science: roles and skills"
+date:   2020-01-05 00:00:00 +0300
+categories: 
+---
+There is a peculiar situation with Data Science process standards.
+
+DS is expensive. Also, it is very fiddly, as there is discrepancy between perception on what AI does from people
+outside the field and what ML can actually do.
+
+Given all this, one may wonder whether there are standards that streamline DS processes to make them more efficient,
+and to ensure that output is consistent and matches expectations. There are a bunch of standards:   
+
+- CRISP DM - a quite deep and thorough standard that covers most of the DS Process ground.
+It focuses on the project lifecycle and artifacts. It is often referred as "the" DS Process standard. However, it has 
+one flaw. It twenty-years old, and some of its points are obsolete. 
+
+- SEMMA - SAP's standard on how to do DS. It is not as thorough as CRISP DM, and covers only modelling part.
+
+- TDSP - Microsoft's take on DS Processes. It is a decent standard; however, it is not as concise and precise as CRISP DM.
+It feels like iterative nature of DS projects is missing from this standard, and some fields are not covered well
+(deploying, for instance).
+
+You can see that CRIPS DM is the one that covers the most, but it is quite dated. It even has "data mining" in its name!
+I haven't heard this term for solid five years.
+
+Speaking of terminology. I was invited to give a talk on Machine Learning track of DevFest, Google's conference for 
+developers. I decided to talk about terminology, specifically - from roles, position and skills.
+
+I've scrolled through Amazon's, Facebook's and Microsoft's DS job listings to extract keywords, and check how are they
+used in context of job description.
+
+It seems that most of people already agreed on what. Interestingly enough, "Data scientist" is an exception from that.
+This role may mean virtually anything from "writing formulas for Bayesian inference" to "writing SQL queries and giving them 
+to engineers to deploy". Thus, I strongly discourage the use of this term. Instead, we may use one of the following:
+
+- Machine Learning Engineer - training and deploying models
+
+- Data Engineer - data storages, pipelines and ETL
+
+- Data Analyst - exploratory data analysis
+
