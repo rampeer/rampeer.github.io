@@ -4,58 +4,44 @@ title:  "Who are data scientist are, exactly?"
 date:   2020-01-05 00:00:00 +0300
 categories: 
 ---
-Do you remember Data Mining? Yeah, it was a hot topic like 7 years ago.
+Do you remember Data Mining? Yeah, it was a hot topic like 5 years ago.
 
-Also known as "knowledge extraction", this term used to represent scientific field concerned with extracting ("mining") 
-patterns and insights and models from data. That is a precursor to what we call "data analytics", and a precursor of
-Data Science we know right now. Back then these terms were interchangeable. Now, "data mining" is almost gone for good,
-but to this day it sometimes pops out in job descriptions and at conferences.
+Also known as "knowledge extraction", this term used to represent scientific field concerned with extracting ("mining") patterns and insights and models from data. That is a precursor to what we call "data analytics", and a forerunner of Data Science we know right now. Back then these terms were interchangeable. Now, "data mining" is almost gone for good, but to this day it sometimes pops out in job descriptions and at conferences.
 
-There is a peculiar situation with DS terminology. The field evolves so quickly that settled terminology barely keeps
-up with recent trends. I't almost a terminological singularity, even! Distinctions between subfields are often blurry 
-and murky, and each term may have a multitude of meaning.
+There is a peculiar situation with DS terminology. The field evolves so quickly that settled terminology barely keeps up with recent trends. It's almost a terminological singularity, even! Distinctions between subfields are often blurry and murky, each term may have a multitude of meanings, and each meaning can be called several names.
 
-Take, for instance, phrase "I'm a Data Scientist". What does it tell you? I'm writing SQL queries to aggregate
-data? Do I draw charts in Excel? Or, maybe, I develop a high-load services for fraud detection? Maybe, I am writing
-a research paper about next generation of object segmentation models that beat SOTA by another 0.1 percent?
+Take, for instance, the phrase "I'm a Data Scientist". What does it tell you? I'm writing SQL queries to aggregate data? Do I draw charts in Excel? Or, maybe, I develop high-load services for fraud detection? Maybe, I am writing a research paper about the next generation of object segmentation models that beat SOTA by another 0.1 percent?
 This term is non-descriptive.
 
-Without a common language, it's hard to explain what are you doing (especially to a listener from
-outside of the field). It's hard to find people to hire. It's hard to tell business what 
-DS can do - and what cannot. DS advisers like me know that the work if often in explaining business people 
-that they do not need data science (or, at least, curbing their expectations).
+Without a common language, it's hard to explain what are you doing (especially to a listener from outside of the field). It's hard to find people to hire. It's hard to tell the business what DS can do - and what cannot. DS advisers like me know that the work if often in explaining to business people that they do not need data science (or, at least, curbing their expectations).
 
 That's pretty bad.
 
-About a year ago, I was invited to give a talk at Google's conference for developers, DevFest. I decided to talk 
-about terminology, specifically - about roles, position and skills. This external stimuli pushed me to check 
-whether the situation is as bad as I felt it to be, and to do some research in the topic.
+About a year ago, I was invited to give a talk at Google's conference for developers, DevFest. I decided to talk about terminology, specifically - about roles, positions, and skills. This external stimulus pushed me to check whether the situation is as bad as I felt it to be, and to do some research on the topic.
 
 Long story short, I did a bunch of things:
 
 - I've scrolled through Amazon's, Facebook's and Microsoft's DS job listings and wrote down keywords and how they
-are used in the context of job description.
+are used in the context of the job description.
 - Talked with Heads of Data Science in medium-to-large companies who were in two handshakes away from me
 - Had several coffees (and beers) with university professors I knew, who were collaborating with large corporations
 
-Surprisingly for me, it seems that solid chunk of terminology already settled down, but there are a few
-"overloaded" terms. "Data scientist" is one of them, and I discourage its use inside the field.
+Surprisingly for me, it seems that a solid chunk of terminology already settled down, but there are a few "overloaded" terms. "Data scientist" is one of them, and I discourage its use inside the field.
 
 You can read the whole presentation here:
 
-[Dev Fest presentation](sources/files/devfest.pdf)
+[Dev Fest presentation](/sources/files/devfest.pdf)
 
 Tl;dr, main role archetypes:
 
 - Machine Learning Engineer - training and deploying models
 
-- Data Engineer - data storages, pipelines and ETL
+- Data Engineer - data storages, pipelines, and ETL
 
 - Data Analyst - exploratory data analysis
 
-In retrospect, I should've documented more my research. Now, most of the
-source materials (conversation notes, etc.) are forever lost. One of the few remaining
-pieces of evidence is this picture:
+In retrospect, I should've documented more of my research. Now, most of the source materials (conversation notes, etc.) are forever lost. One of the few remaining pieces of evidence is a picture that shows some runes scribed on pieces of paper:
 
-![](sources/files/dsrules.jpg)
+![DS runes](/sources/files/dsrules.jpg)
 
+It looks like we tried to summon a demon and ask him whether ML Engineer should be responsible for ETL pipelines.
