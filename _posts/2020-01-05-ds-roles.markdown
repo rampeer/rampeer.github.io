@@ -1,43 +1,61 @@
 ---
 layout: post
-title:  "Data Science: roles and skills"
+title:  "Who are data scientist are, exactly?"
 date:   2020-01-05 00:00:00 +0300
 categories: 
 ---
-There is a peculiar situation with Data Science process standards.
+Do you remember Data Mining? Yeah, it was a hot topic like 7 years ago.
 
-DS is expensive. Also, it is very fiddly, as there is discrepancy between perception on what AI does from people
-outside the field and what ML can actually do.
+Also known as "knowledge extraction", this term used to represent scientific field concerned with extracting ("mining") 
+patterns and insights and models from data. That is a precursor to what we call "data analytics", and a precursor of
+Data Science we know right now. Back then these terms were interchangeable. Now, "data mining" is almost gone for good,
+but to this day it sometimes pops out in job descriptions and at conferences.
 
-Given all this, one may wonder whether there are standards that streamline DS processes to make them more efficient,
-and to ensure that output is consistent and matches expectations. There are a bunch of standards:   
+There is a peculiar situation with DS terminology. The field evolves so quickly that settled terminology barely keeps
+up with recent trends. I't almost a terminological singularity, even! Distinctions between subfields are often blurry 
+and murky, and each term may have a multitude of meaning.
 
-- CRISP DM - a quite deep and thorough standard that covers most of the DS Process ground.
-It focuses on the project lifecycle and artifacts. It is often referred as "the" DS Process standard. However, it has 
-one flaw. It twenty-years old, and some of its points are obsolete. 
+Take, for instance, phrase "I'm a Data Scientist". What does it tell you? I'm writing SQL queries to aggregate
+data? Do I draw charts in Excel? Or, maybe, I develop a high-load services for fraud detection? Maybe, I am writing
+a research paper about next generation of object segmentation models that beat SOTA by another 0.1 percent?
+This term is non-descriptive.
 
-- SEMMA - SAP's standard on how to do DS. It is not as thorough as CRISP DM, and covers only modelling part.
+Without a common language, it's hard to explain what are you doing (especially to a listener from
+outside of the field). It's hard to find people to hire. It's hard to tell business what 
+DS can do - and what cannot. DS advisers like me know that the work if often in explaining business people 
+that they do not need data science (or, at least, curbing their expectations).
 
-- TDSP - Microsoft's take on DS Processes. It is a decent standard; however, it is not as concise and precise as CRISP DM.
-It feels like iterative nature of DS projects is missing from this standard, and some fields are not covered well
-(deploying, for instance).
+That's pretty bad.
 
-You can see that CRIPS DM is the one that covers the most, but it is quite dated. It even has "data mining" in its name!
-I haven't heard this term for solid five years.
+About a year ago, I was invited to give a talk at Google's conference for developers, DevFest. I decided to talk 
+about terminology, specifically - about roles, position and skills. This external stimuli pushed me to check 
+whether the situation is as bad as I felt it to be, and to do some research in the topic.
 
-Speaking of terminology. I was invited to give a talk on Machine Learning track of DevFest, Google's conference for 
-developers. I decided to talk about terminology, specifically - from roles, position and skills.
+Long story short, I did a bunch of things:
 
-I've scrolled through Amazon's, Facebook's and Microsoft's DS job listings to extract keywords, and check how are they
-used in context of job description.
+- I've scrolled through Amazon's, Facebook's and Microsoft's DS job listings and wrote down keywords and how they
+are used in the context of job description.
+- Talked with Heads of Data Science in medium-to-large companies who were in two handshakes away from me
+- Had several coffees (and beers) with university professors I knew, who were collaborating with large corporations
 
-It seems that most of people already agreed on what. Interestingly enough, "Data scientist" is an exception from that.
-This role may mean virtually anything from "writing formulas for Bayesian inference" to "writing SQL queries and giving them 
-to engineers to deploy". Thus, I strongly discourage the use of this term. Instead, we may use one of the following:
+Surprisingly for me, it seems that solid chunk of terminology already settled down, but there are a few
+"overloaded" terms. "Data scientist" is one of them, and I discourage its use inside the field.
+
+You can read the whole presentation here:
+
+[Dev Fest presentation](sources/files/devfest.pdf)
+
+Tl;dr, main role archetypes:
 
 - Machine Learning Engineer - training and deploying models
 
 - Data Engineer - data storages, pipelines and ETL
 
 - Data Analyst - exploratory data analysis
+
+In retrospect, I should've documented more my research. Now, most of the
+source materials (conversation notes, etc.) are forever lost. One of the few remaining
+pieces of evidence is this picture:
+
+![](sources/files/dsrules.jpg)
 
