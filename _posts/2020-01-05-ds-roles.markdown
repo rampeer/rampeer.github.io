@@ -30,7 +30,7 @@ Surprisingly for me, it seems that a solid chunk of terminology already settled 
 
 You can read the whole presentation here:
 
-[Dev Fest presentation](/sources/files/devfest.pdf)
+[Dev Fest presentation](/assets/devfest.pdf)
 
 Tl;dr, main role archetypes:
 
@@ -42,6 +42,6 @@ Tl;dr, main role archetypes:
 
 In retrospect, I should've documented more of my research. Now, most of the source materials (conversation notes, etc.) are forever lost. One of the few remaining pieces of evidence is a picture that shows some runes scribed on pieces of paper:
 
-![DS runes](/sources/files/dsrules.jpg)
+![](/assets/dsrules.jpg)
 
 It looks like we tried to summon a demon and ask him whether ML Engineer should be responsible for ETL pipelines.
