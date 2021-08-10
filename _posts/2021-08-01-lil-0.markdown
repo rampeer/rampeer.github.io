@@ -1,0 +1,66 @@
+---
+title:  "What's wrong with microservices (now)"
+date:   2021-08-10 00:00:00 +0300
+categories: 
+---
+
+A peculiar observation. In your application, _all_ connections between components are programmatic and language-specific.
+
+Even if you are operating with REST API, you do not make HTTP requests directly from your business logic. You write a 
+wrapper around this API, and call this wrapper instead. Databases are wrapped in DAO, and external services are 
+commonly come with libraries.
+
+The twist is that these wrappers actually belong to the external services. Because of that, these abstractions are leaky.
+Using them requires knowledge about how it works internally.
+
+Have you ever been in a situation where you have a well-documented, nice API (with examples and pictures!)
+but API structure is so convoluted, and JSON are voluminous, it requires immense energe to get working?
+You cannot just "do" the thing you want with it. You have to write a metric ton of code to make API do its job.
+And another ton to transform it into a format used in your application.
+
+Docker, Kubnernetes and other virtualization tools make a step in the right direction, solving that problem
+along with bunch of others (from horizontal scaling and robustness to version hell).
+But omnipresent micro-service architecture spawned other problems.
+
+Have you ever fiddled with Docker configs for hours because service could not connect to another one
+and seemed to be misconfigured? Only to learn that you cannot "just" reference other containers in Docker.
+It requiured extra configuration and setting up DNS configs.
+
+Have you ever tried developing data pipelines at scale?
+Micro-services are supposed to be easy to test and debug due to their modular nature.
+But this does not make you happier because you have to start Elasticsearch, MongoDB, Airflow scheduler,
+and two other services (along with IDE) on your personal calculator.
+Your machine heats up while you populate bases with gigabytes of prod data snapshot, 
+and then hangs when you open your browser to view Jupyter notebook.
+
+Have you ever debugged data service without data lineage?
+When _sometimes_ objects just created by the user do not appear on his listing immediately?
+Or, when users regularly receive strange responses from your system at Friday evenings, but the problem 
+disappears next morning, as scheduled pipeline overwrites faulty data? These "edge effects" are extremely hard to
+find and fix.
+
+Have you ever written a message in `@general` to find the person responsible for the data pipeline you use?
+You really wanted to ask some questions about data anomalies. Instead you learn that pipeline developers left the 
+company year ago, and you are the only user of that pipeline. Also, it broke about two months ago, hence anomalies.
+
+That's all fun, but I'd like to stop that. Or at least try to.
+
+I want to develop a language and a set of accompanying tools that help defining data-oriented micro-service architecture.
+To be more specific, define:
+- data schemas, its properties and valid domains
+- clusters, machines, services, pipelines, components and their configs, APIs and SLAs
+- data connections between these pieces; transferred data types, volume and velocity 
+- estimations and heuristics on execution times, update times, data lags, and memory/disk requirements
+- samples of data collected from production, which can be fed into your machine for testing and developing purposes 
+- deployment and upgrade settings
+
+(and please do not tell me that Airflow is suitable for that, it is not)
+
+Also, it would be cool to:
+- extract information above from existing code or API definitions
+- make SLA checkers, set up telemetry and data anomaly detection based on definitions
+- draw neat graph representation of the system
+
+So.
+ 
+My quest begins.
