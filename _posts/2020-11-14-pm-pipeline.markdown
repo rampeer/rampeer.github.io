@@ -140,8 +140,8 @@ So, I open up my calendar and decide which items of the ToDo list I will do next
 I roughly block up time for tasks each day and assign dates for each task. 
 Here, I take care of the deadlines and dependencies between tasks.
 
-It is very tempting to shove a lot of stuff into one day. I find that realistically I have around 5 hours of productive
-work each day, so I do not plan more than that.
+It is very tempting to shove a lot of stuff into one day.
+I find that realistically I have around 5 hours of productive work each day, so I do not plan more than that.
 
 ## Doing
 
@@ -160,12 +160,19 @@ Again, do a short reviewing-planning cycle to chip away a few more "specific" ta
 Or to do a task you need something from another person, and he has not responded yet. 
 You guessed it - reschedule or review and plan the task.
 
-# Instruments
+# Disclaimer
 
-Which instrument should one use? The one that fits. For a year, I have used pen and paper. 
-After a brief Trello experience, I switched to Outlook. Later - to OneNote, which I've enjoyed for several years. 
-After an "update", Microsoft removed many features from it and introduced an unbelievable amount of bugs. Cross-device
-OneNote - Outlook integration is broken to this day, and it took them about 4 years to port Tasks to the mobile
-application. So, they were not rushing to improve the situation. After considering numerous todo tools (Todoist, Trello
-again), I stumbled upon Notion. Its slick and responsive interface and Database feature immediately sold this product.
-It ticked all the boxes - offline support, cross-device capabilities, document writing, and task-to-document links.
+Stuff in "Tips and Tricks" works for almost everyone. Our brains are similar and work in a similar fashion. My specific implementation of these tricks into my pipeline/framework relies on several assumptions.
+
+I do most of my work myself, and "time" and "mental power" are my only "materials". I am also not limited by location. I believe these assumptions are correct for any generic IT work.
+
+"Getting things done" operate under a slightly different set of assumptions, so the processing sequence looks different. (Also, GTD is relatively old, and assumes your task planner a physical cartotheque). "Jedi's Techniques" is closer to me, but it leans heavily into management.
+
+How these assumptions affect the pipeline?
+
+For example, I am rarely blocked by someone else's status of tasks, or delegate big chunks of functionality. If I do, I create tasks to delegate the task, to check status several times (pings), and then to evaluate that person's work. This is a bit clumsy, as I do not explicitly write down dependencies between tasks. For instance, if I would coordinate a big team, this would not work well. I would need better tools to track down dependencies - for example, add proper dependency tracking and drawing Gantt charts into the pipeline.
+
+Similarly, if I would rely on physical materials or location to do, I would need to track these materials and write down tasks' optimal location to minimize time spent commuting.
+
+Another thing to keep in mind is that this framework is designed to be "the one to rule them all". It is a personal task management system. The whole point of it is having everything in one place. Because of that, a task list is a blend of work tasks, shopping lists, ideas, house chores, and happy birthday reminders.
+There is a reason for that: having everything in one place removes lets you check  "the next thing to do" in one place, and greatly reduces cognitive load and anxiety. The drawback is that you cannot share that with other people. You have to "copy" updates and the status of your tasks into your corporate system. In my experience, it is the lesser evil.
