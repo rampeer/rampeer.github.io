@@ -1,0 +1,251 @@
+Rules:
+
+:                   definition, or object and meta-info pair
+() and .            hierarchy definition
+[] and,             modifiers, and extra metainformation
+--> <--             data flow; inputs and outputs
+@ and '             time-related symbols
+~                   configuration and deployment
+/                   partitions, paths or data filtering
+_                   special language commands and file manipulation
+> < = >~ <~ ~=      comparisons, and fuzzy comparisons
+& | = ~~            timings and dynamic analysis
+
+...FILES
+
+FNAME.lil - current FNAME dfd piece
+*/FNAME_*.lil - piece of FNAME config
+*/FNAME_*.lilstat - rules, statistics and timings for FNAME
+*/FNAME_*.lilcnf - configs and /rules for FNAME
+*/FNAME.VERSION.dfd - old concatenated config version (along with upgrade patches)
+*/FNAME.last.dfd - release version
+
+./.lildfd - full rendered file (~release)
+
+
+...PROPERTIES
+varname: vartype
+objname: objtype
+
+<Property> of <Propvalue>
+<Property>[<Propvalue>]
+
+<Propvalue / Meta info> <Property>
+<Propvalue> per <property>
+
+<Property> : <Propvalue / Meta info>
+specifiername: specifiervalue
+something   [spec1: specval1a, specval1b, spec2: specval2]
+            [spec3: specval3]
+            spec4[specval4]
+            [spec5]
+
+...STORAGES & I/O
+
+Storage/pkeyvalue1: pkeyname1/pkeyvalue2: pkeyname1/* [any partition]
+
+component A's in x writes to storage B
+A.x          >------>|  B/p1/p2
+
+component B reads from storage A
+A/p1/p2     |> - - ->  B.y
+
+component A writes/triggers to component B (call & forget)
+A.x >-------> B.y
+
+component A calls component B and reads response
+A. >- - - -< B
+
+
+...CONFIGURATION, DEPLOYMENT
+prop X at prod configuration   [prod|qa|stage|dev|local]
+X~prod: value
+
+a complex config file/reader
+P: config file[confname:/some/path] file[f2] secret[f3/./././] (
+    varname1: type config[f1] config[confname.f1]
+    varname2: type
+    varname4: 1234
+    varname3: "literal value"
+)
+
+
+...VARIANTS / DIFFS / FILE MANIPULATIONS
+Proposals, Target state definitions etc.
+After applying var bumps version OR includes result in the full config along
+with
+{confname}.{VERSION} old full config versions; all variants listed
+when committing, diff with previous git version is stored in
+
+replaces obj1,2 with 3,4; adds new thing
+
+aThing!variant (
+    version: +1
+    -obj1, obj2
+    +obj3, obj4
+
+    aBrandNewThing: Type
+
+    commit: ...
+    nextCommit: ...
+)
+
+_include
+
+... Timing
+
+current time (when the code is executed)
+@now
+
+in@t
+
+start of step X
+@start[X]
+
+o is a stream of states of objects at moment t with schema X
+stream[o: Schema@t]
+
+... Dynamic properties and constraints
+x is always greater than 0
+x > 0
+always x > 0
+v: int [>0]
+
+v > ~0
+typically v > 0
+
+x is 5
+x=5
+
+x is about 5
+x~~5
+x~=5
+
+varies from 3 to 5
+3..5
+
+counting and uniques
+len[x.arrayprop]
+len[unique of x.arrayprop.p]
+len[x.arrayprop [p > 10]]
+
+... Dynamic stats
+inStream@t exp|gauss[avg dist] smooth[30%] spike[1%] daily weekly
+|x| len of x / count elements in x / count condition x
+a..b range
+@now - @t = lag[@t]
+
+specific values/combos
+(b > 0) | ("qwe": a, "sample": x) = 50%
+typically |out2.value > 0| ~~ 5 per
+|unique out2.id| ~~ 500000
+lag[@t] > ~5
+
+X: Y (
+    size: ...
+    table/p1/p2: batch[o:Schema]
+        readTime[5s + 2s per |table/p1/p2| ]
+        writeTime[2s +
+)
+
+Y and partition keys
+    ...arbitrary
+    storage         ... custom persistent storage; default for nodes/services
+    medium          ... transient storage / call modifier
+    call            ... programmatic call; default for components
+
+    ...storages
+    sql, nosql      tablename/pk1/pk2
+    kv              /key
+    file            /path
+
+    ...transient storages/call modifiers
+    queue           host:port/queuegroup/queuename
+    cache           uri/key
+    shard           /key
+
+    ...remote call
+    http[s]         url: [get|post|websocket]  format[xml|json|form]
+    grcp            url
+
+X: [internal|external] [node|service|component|cluster] tag[t1, t2, t3] (
+    version: ...
+    owner: ...
+    owner-contact: ...
+    configs: ./path/to/config [env: dev|prod|qa]
+    secret-configs: ./path/to/config [env: dev|prod|qa]
+    A: component (...)
+    B: component (...)
+    > inName batch[o:Type]
+    inName batch[o:Type] <
+    < outName single[o:Type] | o:Type | Type
+    > inName batch[o:Type]
+
+    > funName batch[Type] > comp1 > comp2 > stream[o:Type] >
+)
+
+X: [internal|external] node [N per cluster, sharded by col1] (
+    host~prod: name
+)
+X: [internal|external] service (
+    host: name
+    port: port
+    image:
+)
+
+X: [internal|external] component (
+    host: name
+    port: port
+    | triggered: hourly ---
+    | batch[RetType] apiName < stream[RetType] --->
+)
+
+O: schema (
+    v: type
+    v2: type
+    O2: schema ( .... )
+    *: embedded O2 (v1, v3, v4)
+)
+
+
+X@t                         state of object with schema X at moment t
+X@t     [t: -3d .. -1d]     batch of objects states
+
+
+stream objA ----> B/A.pkey1/A.pkey2 [append|overwrite|try]
+batch objA ----> B/A.pkey1/A.pkey2 [append|overwrite|try]
+
+B ----> C
+
+Objects & fields
+Components & APIs
+Initiator & call sequence
+Timing & lineage
+Stats &
+
+Component - what it writes, reads, triggers and calls + triggers + timings
+Read, write
+  type (message or batch)
+  partition key
+  columns
+R/W destination storage
+  Name
+  Append / overwrite / skip if exists
+
+storage types:
+
+(>stream[msg] <stream[outmsg]) |--->
+      cache[cachekey]
+(>stream[msg] <stream[outmsg]) |--->
+
+stream > queue/queuename/group [append] > stream
+stream > batcher [N] [] > batch[batchNo]
+
+stream > filesystem/path [append/overwrite/skip]
+file[partition=filenames] > batch
+
+batch > sqldb[tbl, partition=primary key][append/overwrite/skip]
+stream > sqldb[tbl, partition=primary key][append/overwrite/skip]
+sqldb[tbl, partition=primary key] |batch- - - - query, part> batch
+
+Triggers
