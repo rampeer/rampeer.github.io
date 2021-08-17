@@ -1,6 +1,7 @@
 ---
 title:  "What's wrong with microservices (now)"
 date:   2021-08-10 00:00:00 +0300
+permalink: /lil/post_1
 categories: 
 ---
 

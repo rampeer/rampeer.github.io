@@ -1,10 +1,33 @@
 ---
 title:  "Language goals"
 date:   2021-08-10 00:00:00 +0300
+permalink: /lil/post_2
 categories: 
 ---
 
-So, what do I want the language to be able to define? 
+That's what I thought at the moment of writing that post. My viewpoint may change in the future
+
+### Use cases
+
+What's the typical use cases of that language?
+- Document existing microservice infrastructure
+- Design (and create design proposal) of changes in the infrastructure
+ 
+Secondary goals:
+- Provide quicker prototyping with codegeneration and templates
+- Automatic deployment, sanity checks, data validation and anomaly detection
+
+### Requirements
+
+- git-friendly (good diffs, import through repo)
+- codegeneration (boilerplates, clients and servers, serialization and deserialization)
+- detailed data storage and data flow descriptions (fields, types, semantics and relationships, storage access information,
+"ground truth" sources and other)
+
+### Described objects
+
+So, what do I want to define with that language?
+
 - Describe data schemas and validations in a language-agnostic way 
 - Define and document micro-service components (nodes, services, pipelines, apps, systems and subsystems)
 - Specify storages along with data retention policies, data indices, lags and data timing, data lineage,
@@ -18,21 +41,23 @@ figuring out how to interact with running service.
 - Generate SLA checkers, DAO and config boilerplates, deployment procedures, telemetry calls, and other useful things 
 that can be code-generated from that description  
 
-Why? Because I want ...
+### Motivation
 
-### Good data architecture documentation & easier design 
+Why do I want that? Because I want ...
+
+#### Good data architecture documentation & easier design 
 
 Micro-service application consist of dozens of running applications, pipelines, tables and storages.
 If you work in a large enough company, chances are that there is not _a single person_ that knows how 
 every service and storage relates to each other, and which data is available where.
 
-### Be able to transform the code into a description, and back
+#### Be able to transform the code into a description, and back
 
 It is not uncommon to write validation logic several times (for example, client-side JS form validation + server
 - side validation). It's fun, but I'd prefer generating code from the description, and define validation
 logic once. We can make a step further. When code is changed, it is possible to update data schema.
 
-### Good, usable documenting solution
+#### Good, usable documenting solution
 
 Why no one uses UML systematically? 
 
@@ -41,7 +66,7 @@ impossible). Plant Text is popular for a reason.
 
 So, I'd like to keep schema git-friendly and diff-able. Also, i'd like to check and update it to match the code.
 
-### To write boilerplate code less, write code that implements ideas more, prototype quicker
+#### write less boilerplate code, write more idea-dense code, and prototype quicker
 
 I complained about leaky interfaces. I'd like to enforce _easy_ interfaces, at least on the high level.
 
