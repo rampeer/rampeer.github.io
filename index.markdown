@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Microservice description language
-permalink: /lil/
+title: "Microservice description language"
+permalink: /lil_doc/
 ---
 
 Define metadata about data storages, services, pipelines and business objects, and tie everything together.
@@ -12,4 +12,4 @@ Helps answering questions "where does this data come from?", "do we have histori
 "how do we calculate this feature offline and online in a consistent manner", and other
 fun questions that arise when deploying model to production.
 
-{% include menu.markdown %}
+{% include lil/menu.markdown %}
