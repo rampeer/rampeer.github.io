@@ -1,6 +1,8 @@
-# Quick reference
+{% include menu.markdown %}
 
-## Syntax
+## Quick reference
+
+### Syntax
 
 `a: b` property `a` of type `b`
 
@@ -14,8 +16,6 @@ that setting's`modType` is set to `value`. Modifiers can:
   `a:int typically[a<10]` or `[a ~< 10]` define reasonable value range
 
 - add semantic info, specify data format or middlewares.  `comp1.inName -- format[json] ---> comp2.outName`
-
-- 
 
 `hostname~dev = dev.mytool.com` tilde (`~`) is used to define deploy-specific (or machine/user-specific) values.
 
@@ -46,7 +46,7 @@ MyComponent!varX :component(
 - `[private]` do not share outside of dev group 
 - `[external]` described here, but we do not control that
 
-## Objects
+### Objects
 
 defines business data structure
 ```
