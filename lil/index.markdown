@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "Microservice description language"
-permalink: /lil_doc/
+permalink: /lil/
 ---
 
 Define metadata about data storages, services, pipelines and business objects, and tie everything together.
@@ -11,3 +11,6 @@ Helps answering questions "where does this data come from?", "do we have histori
 "should we make daily snapshot of a table, or stream update ", "what's the data retention policy", 
 "how do we calculate this feature offline and online in a consistent manner", and other
 fun questions that arise when deploying model to production.
+
+# Menu
+{% include menu.markdown %}

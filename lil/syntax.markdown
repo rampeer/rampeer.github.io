@@ -1,3 +1,9 @@
+---
+layout: page
+title: Lil syntax
+permalink: /lil/syntax
+---
+
 {% include menu.markdown %}
 
 ## Syntax

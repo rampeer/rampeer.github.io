@@ -1,9 +1,3 @@
----
-layout: page
-title: About
-permalink: /lil/quickref
----
-
 {% include menu.markdown %}
 
 ## Quick reference
