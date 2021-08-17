@@ -1,3 +1,30 @@
+# Alphabet
+
+
+| Symbol       | Meaning                                                                                              | Example                                                        |
+|--------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| :            | defines a <property-property type> pair                                                              | a is an integer<br>`a: int`                                    |
+| =            | defines a <property-property value> pair                                                             | hostname is "google.com"<br>`hostname = google.com`            |
+| /            | defines paths, database names, table names, or partitions                                            | objects inside storage `db`'s database `my_db`'s table `messages` with partition key `request.date`:<br> `db: storage`<br> `db/my_db/messages/ partition[messagedate_pkey: request.date]`                                                              |
+| () and .     | parentheses define hierarchy, and dot is used to access it                                           |                                                                |
+| []           | brackets define complex types, or add meta-information to an object that they follow. Syntax:<br>[modifierValue]<br>[modifierType: modifierValue]<br>[modifierType: modifierValue1, modifierValue2]<br>modifierType[modifierValue]<br>modifierType[modifierSubtype:modifierValue] |  #a is a stream of messages in json format. They are coming through a HTTP Websocket.<br> `> a: stream [format:json] source[http: websocket]`                                                             |
+| > < =        | strict comparisons that define domain of values                                                      | age is a positive int<br>age: int [a >= 0]                   |
+| >~ <~ ~ ~=     | fuzzy comparisons that define reasonable domain of values (typical values)                           | age is typically between 18 and 30<br>a: int [18 ~< a ~< 30] |
+| ~~           | order of magnitude     | size ~~ 10Gb |
+| >--><br><--< | data flow arrows                                                                                     | a writes to storage b in batch<br> a ----> b                                                              |
+| _            | Meta-commands (include, import, ...)                                                                           |                                                                |
+| !            | Deploy mode                                                                                                    |                                                                |
+| ^            | Version or version draft (=proposal)                                                                                          |                                                                |
+| #            | Docstring                                                                                                 |                                                                |
+| \             | Distribution                                                                                                     |                                                                |
+| "x" | treat x as a literal | | 
+| $x | treat x as a reference 
+| @t | at moment x
+| x' | change/new value of x
+
+`modifierSubtype`, `modifierType`, pieces of full object qualifier (`.` path, like `a.b.c`) can be omitted if
+ they can be resolved unambiguously. `"` and `$` can be skipped as well. Values will be 
+
 # Abstractions
 
 ## Schema
@@ -8,18 +35,21 @@ children belong only to one parent.
 
 ```
 User: schema (
-    user_id: int [pk]
+    [version: 5]
+    [maintainer: test@gmail.com]
+    
+    user_id: int [key]
     name: str
     age: int
     purchases: List[Purchase]
     Purchase: schema (
-        order_id: int [pk]
+        order_id: int [key]
         items: List[Product]
     )
 )
 
 Product: schema (
-    product_id: int [pk]
+    product_id: int [key]
     name: str
     ts: timestamp
 )
@@ -27,22 +57,28 @@ Product: schema (
 
 We may reference schema's fields as data types to add semantics. 
 For example, by writing `oid: Purchase.order_id` we are saying that variable `oid` has type `int`, 
-but actually it is some `Purchase`'s `order_id`.
+but actually it is a reference to `Purchase`'s `order_id`.
 
-### Subtypes
+Definitions can be split into multiple files. Deployment (`~`) or variants (`!`) modify existing values.
+To "extend" definition outside of the original file, you just start with _.
+
+This adds two fields to the Product definition
+
+```
+_Product (
+    image_url: str
+    page_url: str
+)
+```
 
 #### schema.config
-that this schema describes configuration file format.
-Modifier `FORMAT[filepath]` can be set for the schema itself, along with
+subtype of schema that describes configuration file format.
+
+For that subtype, modifier `FORMAT[filepath]` can be set for the schema itself to specify  along with
 `[env: ENVVAR_NAME]` or `[config: <config file path and option name>]`, or hardcoded values `hostname: str = sample` 
 for each field. 
 
-`FORMAT` may be
-- json
-- yaml
-- ini
-- xml
-- toml
+`FORMAT` is one of: json, yaml, ini, xml, toml
 
 Example:
 
@@ -73,7 +109,8 @@ GenderInDB: enum(
 
 GenderOnSite: enum(
     adult
-    adult.male = "m" same[_.male]  _alias GenderInDB
+    _as GenderInDB
+    adult.male = "m" same[_.male]
     adult.female = "f" same[_.female]
     adult.unisex = "u" similar[_.female, _.male]
     kids = "k"
@@ -82,9 +119,24 @@ GenderOnSite: enum(
 )
 ```
 
-### Basic data types
+### Conditions
+
+Conditions may use: 
+- `> < =`, to specify valid ranges
+- `>~ ~< =~` to specify typical ranges (reasonable bounds)
+- `~~` to define order of magnitude or asymptotic line 
+- `=` or `=~` to define expected value or typical value
+- `start..` , `..end`, `start..end` to define ranges, for example `0..100`
+- `%` to specify divisibility. "a is ranges from 0 to 1000 with step 10" is written as `a: int [0..1000, a % 10]`
+- `len`, `start.. end` when applied to strings, specify string length or substrings (which can then be used in conditions) 
+
+
+### Basic data types and units
 
 int
+- B|Billions
+- M|Millions
+- K|Thousands
 
 float
 
@@ -114,14 +166,33 @@ blob.model
 timestamp
 date
 datetime
-datepattern
+
+timespan
 ms|milliseconds
 s|seconds
 m|minutes
 h|hours
 d|days
 w|weeks
-mon|months 
+mon|months
+
+size
+b|byte
+Kb, Mb, Gb, Tb 
+
+### Complex types
+
+- `List[x]`, `Map[x, y]`, `Array[x]` are complex data types. They wrap around x, adding extra properties to the `field_name`
+(`field_name.len` for all complex types; and `field_name.keys`/`field_name.values` for `Map`).
+
+- `embedded[SchemaName: fields1, fieldsN]` includes part of another schema into that one. 
+If no fields are specified, then all are used. Asterisk `*` in the field name is used as a placeholder. 
+It define a place where the original variable's name is placed 
+(if there is no asterisk, embedded schema's field names are appended to the `field_name`).
+  - For example, 
+`user_*: Embedded[User: name, age]` becomes `user_name: User.name` , `user_age: User.age`
+
+- `enum[EnumName: value1, value2, ... valueN]` defines enum `EnumName` with a list of possible values.
 
 ### Modifiers
 
@@ -142,21 +213,16 @@ They go right after the object definition:
 
 or
 
-`appname: app [modifierSubtype: modifierValue]`  
+`appname: app [modifierSubtype: modifierValue] ( ... )`
 
-#### Complex types
+they often replace `=`. Example above can be rewritten as
 
-- `List[x]`, `Map[x, y]`, `Array[x]` are complex data types. They wrap around x, adding extra properties to the `field_name`
-(`field_name.len` for all complex types; and `field_name.keys`/`field_name.values` for `Map`).
-
-- `embedded[SchemaName: fields1, fieldsN]` includes part of another schema into that one. 
-If no fields are specified, then all are used. Asterisk `*` in the field name is used as a placeholder. 
-It define a place where the original variable's name is placed 
-(if there is no asterisk, embedded schema's field names are appended to the `field_name`).
-  - For example, 
-`user_*: Embedded[User: name, age]` becomes `user_name: User.name` , `user_age: User.age`
-
-- `enum[EnumName: value1, value2, ... valueN]` defines enum `EnumName` with a list of possible values.
+```
+appname: app (
+    modifierSubtype: modifierValue
+    ...
+)
+```  
 
 #### Database-related modifiers
 
@@ -171,19 +237,7 @@ and in that index it can be effectively queried using "equals", "not equals" and
 or "between" (`range`). Custom index types are supported; for example, to define database-specific index
 (such as fulltext-search indices).
 
-#### Domain-defining modifiers
-
-Conditions may use: 
-- `> < =`, to specify valid ranges
-- `>~ ~< =~` to specify typical ranges (reasonable bounds)
-- `~~` to define order of magnitude or asymptotic line 
-- `=` or `=~` to define expected value or typical value
-- `start..` , `..end`, `start..end` to define ranges, for example `0..100`
-- `%` to specify divisibility. "a is ranges from 0 to 1000 with step 10" is written as `a: int [0..1000, a % 10]`
-- `always[contains: SUBSTRING]`, `always[regexp: REGEXP]`
-- `len`, `start.. end` when applied to strings, specify string length or substrings (which can then be used in conditions) 
-
-Modifiers:
+#### Validation modifiers
 
 - `subset[P]`, `superset[P]`, `all[P]`, where P is a reference be another schema's field.
 `subset`, `superset` say that the set of all values of field at hand is a subset/superset of P. 
@@ -227,6 +281,7 @@ unit (milliseconds, dollars, bytes) and some have other (seconds, cents, kilobyt
 
 - `first[t>...]`, `last[t<...]`
 
+- `first since[]`, `last before[t]`
 
 ## Projects, clusters, nodes, applications
 Project is a complete collection of repos, machines and services that can be interacted by an external user.
@@ -234,13 +289,13 @@ For instance, your online shop is a "project"
 
 Cluster is a set of machines, and node is a single machine (virtual or dedicated). 
 
-
 Application is a piece of software that runs on a node.
 There are subtypes of applications:
 - services (`app.service`) which are expected to start accepting requests on start-up, and hang indefinitely
 - pipelines (`app.pipeline`) which are launched by a trigger or schedule. They transform data, and halt.
 
 ```
+Project: projectname
 MyCluster: cluster(
     autoscale: ...
     nodenames: ...
@@ -259,15 +314,18 @@ MyCluster: cluster(
         MyApp: app(
             triggered: <schedule>
             >-- inName : mode[type] -->
+            |>-- inName : mode[type] -->
             <-- outName: mode[type] --<
-            |<- - -  apiCallName:   argmode[argtype] [call] > retval: argmode[argtype]
+            |<-- outName: mode[type] --<
+            |< apiCallName:   argmode[argtype] 
+            |> apiCallName:   argmode[argtype]
             - - - > apiDefinition: argmode[argtype] < retval: argmode[argtype]
         )
     )
 )
 ```
 
-We don not have to define all these parts of hierarchy. "Default" project/cluster/node/app is 
+We do not have to define all these parts of hierarchy. "Default" project/cluster/node/app is 
 assumed if not stated explicitly.
 
 ## Storages, components and pipelines
@@ -283,22 +341,28 @@ If we have to describe what's inside the component, we break it down into compon
 If there are no storages inside the component (even existing but invisible because we did not
 state what's inside the component), then it must be stateless.
 
-Storages hold data. Note that "storage" is a logical concept; it's a reference to a database, but not the
-database itself. One storage may hold many schemas.  
+Storages hold data. One storage may hold multiple schemas.  
 
 ```
-Storage: storage (
-    sometable: schema (
-        [size ~~ 1Mb]
-        [records ~~ 1M]
+storageA: storage (
+    sometable: schema@t (
+        replication: ...
+        size ~~ 1Mb
+        records ~~ 1M
+        retention: 30d
+        retention: 1M records
+        retention: 10Mb
         transaction_id: int [key]
         order_id: Purchase.id
-        Purchase.state': if[="started"] then["done"]
+        somedata: str
+        Purchase.state@t' = "done"
     ) 
 )
 ```
 
-Storages 
+`storageA/sometable filter[transaction_id = 123]`
+
+`storageA/sometable filter[somedata = "qwe"]`
 
 ### Data streams
 
@@ -314,28 +378,24 @@ or number of records.
 config file).
 
 
-## Symbols
+## Access modifiers
 
+`external` - defined here, but you do not control that
 
+`public` - default; exposed to everyone who can read the doc
 
-| Symbol       | Meaning                                                                                              | Example                                                        |
-|--------------|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
-| :            | defines a <property-property type> pair                                                              | a is an integer<br>`a: int`                                    |
-| =            | defines a <property-property value> pair                                                             | hostname is "google.com"<br>`hostname = google.com`            |
-| /            | defines paths, database names, table names, or partitions                                            | objects inside storage `db`'s database `my_db`'s table `messages` with partition key `request.date`:<br> `db: storage`<br> `db/my_db/messages/ partition[messagedate_pkey: request.date]`                                                              |
-| () and .     | parentheses define hierarchy, and dot is used to access it                                           |                                                                |
-| []           | brackets define complex types, or add meta-information to an object that they follow. Syntax:<br>[modifierValue]<br>[modifierType: modifierValue]<br>[modifierType: modifierValue1, modifierValue2]<br>modifierType[modifierValue]<br>modifierType[modifierSubtype:modifierValue] |  #a is a stream of messages in json format. They are coming through a HTTP Websocket.<br> `> a: stream [format:json] source[http: websocket]`                                                             |
-| > < =        | strict comparisons that define domain of values                                                      | age is a positive int<br>age: int [a >= 0]                   |
-| >~ <~ ~=     | fuzzy comparisons that define reasonable domain of values (typical values)                           | age is typically between 18 and 30<br>a: int [18 ~< a ~< 30] |
-| >--><br><--< | data flow arrows                                                                                     | a writes to storage b in batch<br> a ----> b                                                              |
-| /            |                                                                                                      |                                                                |
-| _            |                                                                                                      |                                                                |
-|              |                                                                                                      |                                                                |
-|              |                                                                                                      |                                                                |
-|              |                                                                                                      |                                                                |
-|              |                                                                                                      |                                                                |
-| ~            |                                                                                                      |                                                                |
-|              |                                                                                                      |                                                                |
+`private` - invisible to all who can read the doc.
 
-`modifierSubtype`, `modifierType`, pieces of full object qualifier (`.` path, like `a.b.c`) can be omitted if
- they can be resolved unambiguously.
+## Template commands
+
+`_as: QWE`; then `_.x` means `QWE.x` 
+
+`_|` resolved
+`_include: <localfile>`
+
+`_import_FORMAT: git+<git url>/path^X`. X `branch` or `hash` or `release`. `FORMAT` is `lil`, `docker` ,
+`docker-compose`, ...
+
+`_code: path/sourcefile.ext#Lnum [arg1: sourcearg1] [arg2: sourcearg2] [connclass: sourceclassname]`
+
+`_uml (...)` defines internal structure, class or activity diagrams in `plant uml` format.
