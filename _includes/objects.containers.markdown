@@ -28,6 +28,7 @@ MyCluster: cluster(
         dockerfile: ...
         MyApp: app(
             triggered: <schedule>
+            # 
             >-- inName : mode[type] -->
             |>-- inName : mode[type] -->
             <-- outName: mode[type] --<
@@ -40,5 +41,14 @@ MyCluster: cluster(
 )
 ```
 
-We do not have to define all these parts of hierarchy. "Default" project/cluster/node/app is 
-assumed if not stated explicitly.
+`A > B` , `A |> B`, `B <| A` A sends/writes some data to B
+
+We may specify sent data and stream type:
+
+`A batch[data] > B` , `A |batch[data]> B`, `B <batch[data]| A` A sends/writes a batch of `data` to B
+
+`B >| A`, `A |< B` A reads data from B
+
+`A|request>--<response B`
+
+

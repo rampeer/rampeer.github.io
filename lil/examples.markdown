@@ -33,14 +33,6 @@ CrawlRequest: schema(
     # No need to define internal functions - they are apparent
     PageParser: component [parallel: 5]
     
-    |> enqueue_page:one[CrawlRequest] >
-    
-    > next_page:CrawlRequest --> CrawlThrottler --> PageParser@t -- (
-      -- CrawlThrottler --> found_urls: batch[CrawlRequest] > 
-      -- crawled_data: one[CrawledPage]  lag[t ~~ 1s]  >
-    )
-    
-    
     CrawlQueue: storage.queue (
         > enqueue_page, found_urls
         < next_page
@@ -54,9 +46,85 @@ CrawlRequest: schema(
     )
     
     CrawlThrottler: cache[ttl=1day]
+    
+    |> enqueue_page:one[CrawlRequest] > CrawlQueue
+    CrawlQueue >| @t > CrawlThrottler > [next_page:CrawlRequest] > PageParser > (
+        > CrawlThrottler > batch[found_urls: CrawlRequest] > CrawlQueue
+        > one[crawled_data: CrawledPage] lag[t ~~ 1s] > CrawledPagesDB
+    )
 )
 ```
 
 
 ### Recommender system
 
+Site collects events from visitors. Then, 
+
+```
+User: schema (
+    id: int [id]
+    name: str
+)
+
+Session: schema (
+    id: int [id]
+    user_id: User.id?
+    session_start: timestamp
+    session_end: timestamp?
+)
+
+
+Product: schema (
+    id: int [id]
+    name: str
+)
+
+View: schema(
+    view_id: int [id]
+    product_id: Product.id?
+    session_id: Session.id
+    ts: timestamp  [ts <= Session.session_end, ts >= Session.session_start]
+)
+
+Purchase: schema(
+    order_id: int [id]
+    cart: List[Product.id]
+    session_id: Session.id
+    ts: timestamp
+)
+
+
+Browser: [external] app (
+    < tracked_views: stream[View] <| ...
+    < tracked_purchases: stream[Purchase] <| ...
+)
+
+EventCollector: node (
+    EventWriter: component
+    
+    tracked_views > EventWriter > eventDB.views
+    tracked_purchases > EventWriter > eventDB.purchases
+    
+    get_recommendations > List[Product.id] ---- user: User.id <|
+)
+
+DataScienceMachine: node (
+    triggered[daily] > model_update 
+    EventDB.views >
+)
+
+
+EventDB: storage.postgre (
+    Size ~~ 1Tb
+    
+)
+
+
+ModelDB: storage.kv (
+    Size ~~ 1Gb
+    precomputed_recs : storage[schema] (
+        user_id: int [key]
+        recommendations: List[Product.id]
+    )
+)
+```

@@ -31,7 +31,7 @@ For example, by writing `oid: Purchase.order_id` we are saying that variable `oi
 but actually it is a reference to `Purchase`'s `order_id`.
 
 Definitions can be split into multiple files. Deployment (`~`) or variants (`!`) modify existing values.
-To "extend" definition outside of the original file, you just start with _.
+To "extend" definition outside of the original file, you just start with _ .
 
 This adds two fields to the Product definition
 
@@ -80,12 +80,11 @@ GenderInDB: enum(
 
 GenderOnSite: enum(
     adult
-    _as GenderInDB
-    adult.male = "m" same[_.male]
-    adult.female = "f" same[_.female]
-    adult.unisex = "u" similar[_.female, _.male]
+    adult.male = "m" same[GenderInDB.male]
+    adult.female = "f" same[.female]
+    adult.unisex = "u" similar[.female, .male]
     kids = "k"
-    kids.girls = "g" similar[_.female]
-    kids.boys = "b" similar[_.male]
+    kids.girls = "g" similar[.female]
+    kids.boys = "b" similar[.male]
 )
 ```

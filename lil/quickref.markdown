@@ -72,7 +72,7 @@ Layers can be skipped.
 - `-->` is "read from"
 - `<` is "write to"
 - `|` is "triggered from outside"; `| something |` states that `something` happens outside of the app / component.
-- `|> apiName: intype > outtype >| ` is an api definition
+- `|> apiName: intype > outtype >|` - api definition
 -
 `stream` is a sequence of objects which we dispatch one by one
 

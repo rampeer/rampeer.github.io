@@ -1,27 +1,24 @@
 ---
 layout: page
-title: "Microservice description language"
+title: "LIL"
 permalink: /lil/
 ---
 
 ## LIL
 
-Define metadata for:
-- storages
-- services
-- pipelines and 
-- business objects
-and tie everything together.
+A language that defines metadata about links between high-level domain model ("business logic") and 
+its code implementation and infrastructural realization. Supporting tools are capable of:
+- extracting this metadata from the code, configuration files, and databases
+- automatically keeping metadata up to date with the implementation
+- generating code based on the metadata
 
-Useful for documenting existing services, and designing new data architecture.
-
-Helps answering questions
-- "where does this data come from?"
-- "do we have historical states of that object?"
-- "should we make daily snapshot of a table, or stream updates"
-- "what's the data retention policy for that table" 
-- "how do we calculate this feature offline and online in a consistent manner"
-, and other fun questions that arise when deploying model to production.
+That's useful for:
+- Documenting existing services. A person can trace already known general concepts
+to actual implementation in code.
+- Quick prototyping. Automatic code generation builds a project scaffold for you, alleviating the burden of writing
+- Architecture and decision-making. Metadata provides information necessary to make optimal decisions on
+code changes, database and stack choice, etc.
 
 ## Menu
+
 {% include menu.markdown %}
